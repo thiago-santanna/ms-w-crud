@@ -32,64 +32,59 @@ import com.workerms.crud.services.ProdutoService;
 public class ProdutoController {
 	private final ProdutoService produtoService;
 	private final PagedResourcesAssembler<ProdutoVo> assembler;
-	
+
 	@Autowired
 	public ProdutoController(ProdutoService produtoService, PagedResourcesAssembler<ProdutoVo> assembler) {
 		this.produtoService = produtoService;
 		this.assembler = assembler;
 	}
-	
-	@GetMapping(value = "/{id}", produces = {"application/json","application/xml","application/x-yaml"})
+
+	@GetMapping(value = "/{id}", produces = { "application/json", "application/xml", "application/x-yaml" })
 	public ProdutoVo findById(@PathVariable("id") Long id) {
 		ProdutoVo produtoVo = produtoService.findById(id);
 		produtoVo.add(linkTo(methodOn(ProdutoController.class).findById(id)).withSelfRel());
 		return produtoVo;
 	}
-	
-	@GetMapping( produces = {"application/json","application/xml","application/x-yaml"})
-	public ResponseEntity<?> findAll(
-			@RequestParam(value = "page", defaultValue = "0") int page,
+
+	@GetMapping(produces = { "application/json", "application/xml", "application/x-yaml" })
+	public ResponseEntity<?> findAll(@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "limit", defaultValue = "12") int limit,
-			@RequestParam(value = "direction", defaultValue = "asc") String direction
-			) {
-		
+			@RequestParam(value = "direction", defaultValue = "asc") String direction) {
+
 		var sortDirection = "asc".equalsIgnoreCase(direction) ? Direction.ASC : Direction.DESC;
-		
+
 		Pageable pageable = PageRequest.of(page, limit, Sort.by(sortDirection, "nome"));
-		
+
 		Page<ProdutoVo> produtos = produtoService.findAll(pageable);
-		
-		produtos.stream().forEach(p -> p.add(linkTo(methodOn(ProdutoController.class).findById(p.getId())).withSelfRel()));
-		
+
+		produtos.stream()
+				.forEach(p -> p.add(linkTo(methodOn(ProdutoController.class).findById(p.getId())).withSelfRel()));
+
 		PagedModel<EntityModel<ProdutoVo>> pagedModel = assembler.toModel(produtos);
-		
+
 		return new ResponseEntity<>(pagedModel, HttpStatus.OK);
 	}
-	
-	@PostMapping(
-			produces = {"application/json","application/xml","application/x-yaml"}, 
-			consumes = {"application/json","application/xml","application/x-yaml"}
-			)
+
+	@PostMapping(produces = { "application/json", "application/xml", "application/x-yaml" }, consumes = {
+			"application/json", "application/xml", "application/x-yaml" })
 	public ProdutoVo create(@RequestBody ProdutoVo produtoVo) {
 		ProdutoVo vo = produtoService.create(produtoVo);
 		vo.add(linkTo(methodOn(ProdutoController.class).findById(vo.getId())).withSelfRel());
 		return vo;
 	}
-	
-	@PutMapping(
-			produces = {"application/json","application/xml","application/x-yaml"}, 
-			consumes = {"application/json","application/xml","application/x-yaml"})
+
+	@PutMapping(produces = { "application/json", "application/xml", "application/x-yaml" }, consumes = {
+			"application/json", "application/xml", "application/x-yaml" })
 	public ProdutoVo update(@RequestBody ProdutoVo produtoVo) {
 		ProdutoVo vo = produtoService.update(produtoVo);
 		vo.add(linkTo(methodOn(ProdutoController.class).findById(vo.getId())).withSelfRel());
 		return vo;
 	}
-	
+
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> delete(@PathVariable("id") Long id) {
 		produtoService.delete(id);
 		return ResponseEntity.ok().build();
 	}
-	
-	
+
 }

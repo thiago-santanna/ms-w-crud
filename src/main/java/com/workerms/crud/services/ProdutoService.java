@@ -8,19 +8,23 @@ import org.springframework.stereotype.Service;
 import com.workerms.crud.data.vo.ProdutoVo;
 import com.workerms.crud.entity.Produto;
 import com.workerms.crud.exception.ResourceNotFoundException;
+import com.workerms.crud.message.ProdutoSendMessage;
 import com.workerms.crud.repository.ProdutoRepository;
 
 @Service
 public class ProdutoService {
 	private final ProdutoRepository produtoRepository;
+	private final ProdutoSendMessage produtoSendMessage;
 
 	@Autowired
-	public ProdutoService(ProdutoRepository produtoRepository) {
+	public ProdutoService(ProdutoRepository produtoRepository, ProdutoSendMessage produtoSendMessage) {
 		this.produtoRepository = produtoRepository;
+		this.produtoSendMessage = produtoSendMessage;
 	}
 
 	public ProdutoVo create(ProdutoVo produtoVo) {
 		ProdutoVo produtoVoSalvo = ProdutoVo.fromProduto(produtoRepository.save(Produto.fromProdutoVo(produtoVo)));
+		produtoSendMessage.sendMessage(produtoVoSalvo);
 		return produtoVoSalvo;
 	}
 
